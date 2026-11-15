@@ -43,7 +43,7 @@ class CouncilState(TypedDict, total=False):
     argued: bool
     revisions: list[str]
     gate_result: dict[str, Any]
-    chair_summary: str
+    chair_summary: Any
     trace: Annotated[list[tuple[str, float]], operator.add]
     llm_calls: int
     llm_client: Any
@@ -265,10 +265,10 @@ def node_chair(state: CouncilState) -> dict[str, Any]:
     points = state.get("points", [])
     client = _get_client(state)
 
-    chair_prose = chair.run(gate, evals, points, client)
+    chair_res = chair.run(gate, evals, points, client)
     elapsed = round(time.time() - t0, 1)
     _emit_event(state, "chair_completed", {"elapsed": elapsed})
-    return {"chair_summary": chair_prose, "trace": [("chair", elapsed)]}
+    return {"chair_summary": chair_res, "trace": [("chair", elapsed)]}
 
 
 def build_graph() -> StateGraph:
@@ -358,7 +358,24 @@ def run_council(
     initial = final_state.get("initial", {})
     argued = final_state.get("argued", False)
     revisions = final_state.get("revisions", [])
-    chair_prose = final_state.get("chair_summary", "")
+    chair_res = final_state.get("chair_summary", "")
+    if hasattr(chair_res, "structured"):
+        chair_prose = str(chair_res)
+        chair_structured = chair_res.structured.model_dump()
+    elif hasattr(chair_res, "to_prose"):
+        chair_prose = chair_res.to_prose()
+        chair_structured = chair_res.model_dump()
+    elif isinstance(chair_res, dict):
+        chair_prose = chair_res.get("synthesis_rationale", "")
+        chair_structured = chair_res
+    else:
+        chair_prose = str(chair_res)
+        chair_structured = {
+            "verdict_statement": chair_prose.split("\n")[0] if chair_prose else "",
+            "key_findings": [],
+            "risk_factors": [],
+            "synthesis_rationale": chair_prose,
+        }
     trace = final_state.get("trace", [])
 
     if hasattr(initial_client, "calls"):
@@ -368,6 +385,7 @@ def run_council(
 
     return {
         **gate_data,
+        "gate": gate_data,
         "initial": initial,
         "points": points,
         "argued": argued,
@@ -376,6 +394,7 @@ def run_council(
         "warnings": warnings,
         "evals": evals,
         "chair": chair_prose,
+        "chair_structured": chair_structured,
         "llm_calls": llm_calls,
         "trace": trace,
         "claims": dossier.claims if dossier else [],

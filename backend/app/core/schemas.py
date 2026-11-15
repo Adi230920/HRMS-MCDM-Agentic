@@ -43,6 +43,7 @@ class Evidence(BaseModel):
 class CriterionRating(BaseModel):
     criterion: str
     rating: Rating
+    rationale: str = ""
     evidence: list[Evidence] = []
 
     @field_validator("rating", mode="before")
@@ -98,6 +99,8 @@ class Ruling(BaseModel):
     challenge: str
     defense: str
     verdict: Literal["challenger", "challenged", "unresolved"]
+    verdict_rationale: str = ""
+    key_evidence: list[str] = []
     revised_recommendation: Rec | None = None
 
     @field_validator("revised_recommendation", mode="before")
@@ -117,4 +120,62 @@ class Ruling(BaseModel):
 
 class Rulings(BaseModel):
     rulings: list[Ruling]
+
+
+class ChairFinding(BaseModel):
+    source: str = ""
+    observation: str = ""
+    evidence_quote: str = ""
+
+
+class ChairSummary(BaseModel):
+    verdict_statement: str
+    one_sentence_takeaway: str = ""
+    strengths: list[str] = []
+    red_flags: list[str] = []
+    suggested_followups: list[str] = []
+    debate_narrative: str = ""
+    key_findings: list[ChairFinding] = []
+    risk_factors: list[str] = []
+    synthesis_rationale: str = ""
+
+    @classmethod
+    def from_text_or_dict(cls, data: Any) -> "ChairSummary":
+        if isinstance(data, cls):
+            return data
+        if isinstance(data, dict):
+            return cls.model_validate(data)
+        if isinstance(data, str):
+            lines = [line.strip() for line in data.strip().split("\n") if line.strip()]
+            verdict = lines[0] if lines else "Council evaluation completed."
+            findings = [
+                ChairFinding(observation=line.lstrip("-*• ").strip())
+                for line in lines[1:]
+                if line.lstrip("-*• ").strip()
+            ]
+            strengths = [f.observation for f in findings if any(w in f.observation.lower() for w in ("demonstrated", "verified", "strong", "high", "success", "proven"))]
+            red_flags = [f.observation for f in findings if any(w in f.observation.lower() for w in ("contradict", "unverified", "poor", "risk", "dismiss", "skip", "fail", "split"))]
+            return cls(
+                verdict_statement=verdict,
+                one_sentence_takeaway=verdict,
+                strengths=strengths or [f.observation for f in findings[:2]],
+                red_flags=red_flags,
+                debate_narrative=data,
+                key_findings=findings,
+                synthesis_rationale=data,
+            )
+        return cls(verdict_statement=str(data), one_sentence_takeaway=str(data))
+
+    def to_prose(self) -> str:
+        findings_bullets = "\n".join(
+            f"- [{f.source}] {f.observation}" + (f': "{f.evidence_quote}"' if f.evidence_quote else "")
+            for f in self.key_findings
+        )
+        risks_bullets = "\n".join(f"- {r}" for r in self.risk_factors) if self.risk_factors else "None flagged."
+        return (
+            f"{self.verdict_statement}\n\n"
+            f"Findings:\n{findings_bullets}\n\n"
+            f"Risk Factors:\n{risks_bullets}\n\n"
+            f"Rationale:\n{self.synthesis_rationale}"
+        )
 

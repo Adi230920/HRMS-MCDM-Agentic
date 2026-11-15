@@ -489,6 +489,10 @@ REVIEW_FIXTURE = {
                 "challenge": "COLLABORATION emphasizes candidate admitted teammates slow them down and skips reviews",
                 "defense": "DELIVERY points to solo delivery capability and technical execution",
                 "verdict": "unresolved",
+                "verdict_rationale": "High individual delivery cannot resolve the candidate's explicit admission that teammates slow them down and that code reviews are skipped. The panel remains divided.",
+                "key_evidence": [
+                    "Honestly my teammates slow me down. Code reviews are mostly a waste of time and I skip them when I can."
+                ],
                 "revised_recommendation": None,
             }
         ]

@@ -145,6 +145,7 @@ def _execute_pipeline_task(
                 ("evals", json.dumps({k: v.model_dump() for k, v in pkg.get("evals", {}).items()})),
                 ("points", json.dumps([p.model_dump() for p in pkg.get("points", [])])),
                 ("chair", pkg.get("chair", "")),
+                ("chair_structured", json.dumps(pkg.get("chair_structured", {}))),
                 ("trace", json.dumps(pkg.get("trace", []))),
                 ("revisions", json.dumps(pkg.get("revisions", []))),
                 ("warnings", json.dumps(pkg.get("warnings", []))),
@@ -363,7 +364,11 @@ def get_run(run_id: str, db: Annotated[Session, Depends(get_db)]) -> dict[str, A
             "transcript_redacted": run_record.inputs.transcript_redacted if run_record.inputs else "",
         },
         "artifacts": {
-            k: (json.loads(v) if k in ("evals", "points", "trace", "revisions", "warnings", "gate", "claims", "argued") else v)
+            k: (
+                json.loads(v)
+                if k in ("evals", "points", "trace", "revisions", "warnings", "gate", "claims", "argued", "chair_structured")
+                else v
+            )
             for k, v in artifacts.items()
         },
         "llm_calls": calls,

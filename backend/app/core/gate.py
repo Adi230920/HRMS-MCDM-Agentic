@@ -80,6 +80,65 @@ def deterministic_gate(
 
     aar = sum(v == direction for v in recs.values()) / len(recs) if recs else 0.0
 
+    score_breakdown = {
+        "agent_scores": {n: round(score(ev, pol), 3) for n, ev in evals.items()},
+        "agent_weights": {n: pol.agent_weights.get(n, 0.0) for n in evals},
+        "live_weight_sum": round(live_w, 3),
+        "base_score": round(base, 3),
+        "unresolved_points_count": unresolved,
+        "unresolved_penalty_rate": unresolved_penalty,
+        "unresolved_multiplier": round((1 - unresolved_penalty) ** unresolved, 3),
+        "failed_agents_count": len(failed_map),
+        "failed_penalty_rate": failed_penalty,
+        "failed_multiplier": round((1 - failed_penalty) ** len(failed_map), 3),
+        "final_council_score": round(conf, 3),
+        "formula": f"Base ({round(base, 3)}) * (1 - {unresolved_penalty})^{unresolved} * (1 - {failed_penalty})^{len(failed_map)} = {round(conf, 3)}",
+    }
+
+    initial_direction = top if recs else "REVIEW"
+    decision_trace = [
+        {
+            "step": 1,
+            "stage": "Quorum & Initial Direction",
+            "rule": "Majority recommendation (k >= 2 of panel agents)",
+            "status": "PASSED" if quorum else "NOT_MET",
+            "detail": f"Agent votes: {recs}. Top recommendation: '{initial_direction}' ({k}/{len(recs)} agents)." if recs else "No agent evaluations present.",
+            "outcome": f"Direction set to '{direction}'",
+        },
+        {
+            "step": 2,
+            "stage": "Veto Rule Evaluation",
+            "rule": f"Veto triggers if >= {pol.veto.signals_required} critical signals trip (threshold floor: {veto_floor})",
+            "status": "TRIGGERED" if veto else "CLEARED",
+            "detail": f"Active veto signals: {signals if signals else 'None'}. Signals count: {len(signals)}/{pol.veto.signals_required}.",
+            "outcome": f"Direction demoted from '{initial_direction}' to 'REVIEW'" if (veto and initial_direction == "ADVANCE") else "No veto demotion applied",
+        },
+        {
+            "step": 3,
+            "stage": "Unanimity & Debate Resolution Check",
+            "rule": "ADVANCE verdict requires 100% unanimous panel and 0 unresolved debate points",
+            "status": "PASSED" if (unresolved == 0 and all(v == "ADVANCE" for v in recs.values())) else "FLAGGED",
+            "detail": f"Unresolved points: {unresolved}. Panel unanimity: {all(v == 'ADVANCE' for v in recs.values())}.",
+            "outcome": "Direction downgraded to 'REVIEW'" if (direction == "REVIEW" and initial_direction == "ADVANCE" and not veto) else "Maintained current direction",
+        },
+        {
+            "step": 4,
+            "stage": "Confidence Penalty Application",
+            "rule": f"Base score penalized by {int(unresolved_penalty * 100)}% per unresolved point and {int(failed_penalty * 100)}% per failed agent",
+            "status": "PENALIZED" if (unresolved > 0 or len(failed_map) > 0) else "NO_PENALTY",
+            "detail": f"Base score: {round(base, 3)}. Score adjusted to {round(conf, 3)}.",
+            "outcome": f"Score shifted by {round(conf - base, 3)}",
+        },
+        {
+            "step": 5,
+            "stage": "Council Consensus & Alignment",
+            "rule": "Post-resolution agreement rate (AAR) and outlier detection",
+            "status": "ALIGNED" if aar >= 0.67 else "DIVIDED",
+            "detail": f"Agreement After Resolution (AAR): {round(aar * 100, 1)}%. Outliers detected: {outliers if outliers else 'None'}.",
+            "outcome": f"Final Council Verdict: '{direction}' (Score: {round(conf, 3)})",
+        },
+    ]
+
     return {
         "decision": direction,
         "quorum": quorum,
@@ -91,4 +150,6 @@ def deterministic_gate(
         "aar": round(aar, 3),
         "outliers": outliers,
         "final": recs,
+        "decision_trace": decision_trace,
+        "score_breakdown": score_breakdown,
     }

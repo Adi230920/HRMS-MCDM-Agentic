@@ -31,7 +31,79 @@ export interface Evidence {
 export interface CriterionRating {
   criterion: string;
   rating: Rating;
+  rationale?: string;
   evidence: Evidence[];
+}
+
+export interface DebatePoint {
+  id: string;
+  rule: string;
+  severity: "high" | "medium" | "low";
+  challenger: string;
+  challenged: string;
+  detail: string;
+  challenge?: string;
+  defense?: string;
+  verdict?: "challenger" | "challenged" | "unresolved";
+  verdict_rationale?: string;
+  key_evidence?: string[];
+}
+
+export interface GateDecisionStep {
+  step: number;
+  stage: string;
+  rule: string;
+  status: string;
+  detail: string;
+  outcome: string;
+}
+
+export interface ScoreBreakdown {
+  agent_scores: Record<string, number>;
+  agent_weights: Record<string, number>;
+  live_weight_sum: number;
+  base_score: number;
+  unresolved_points_count: number;
+  unresolved_penalty_rate: number;
+  unresolved_multiplier: number;
+  failed_agents_count: number;
+  failed_penalty_rate: number;
+  failed_multiplier: number;
+  final_council_score: number;
+  formula: string;
+}
+
+export interface GateArtifact {
+  decision: string;
+  quorum: boolean;
+  veto: boolean;
+  veto_signals: string[];
+  base_score: number;
+  council_score: number;
+  unresolved: number;
+  aar: number;
+  outliers: Record<string, string[]>;
+  final: Record<string, string>;
+  decision_trace?: GateDecisionStep[];
+  score_breakdown?: ScoreBreakdown;
+}
+
+export interface ChairFinding {
+  source?: string;
+  observation: string;
+  evidence_quote?: string;
+}
+
+export interface ChairStructured {
+  verdict_statement: string;
+  one_sentence_takeaway?: string;
+  strengths?: string[];
+  red_flags?: string[];
+  suggested_followups?: string[];
+  debate_narrative?: string;
+  key_findings: ChairFinding[];
+  risk_factors: string[];
+  synthesis_rationale: string;
 }
 
 export interface ClaimFinding {
@@ -105,13 +177,16 @@ export interface RunDetail {
     transcript_redacted: string;
   };
   artifacts: {
-    gate?: Record<string, unknown>;
+    gate?: GateArtifact;
     evals?: Record<string, AgentEval>;
-    points?: Array<unknown>;
+    points?: DebatePoint[];
     chair?: string;
+    chair_structured?: ChairStructured;
     trace?: Array<[string, number]>;
-    revisions?: Array<unknown>;
+    revisions?: string[];
     warnings?: string[];
+    claims?: Claim[];
+    argued?: boolean;
     [key: string]: unknown;
   };
   llm_calls: LLMCallRecord[];
@@ -252,6 +327,26 @@ export function useRunEvents(runId: string | null) {
     setIsFailed(false);
     setError(null);
     setRunData(null);
+
+    // Initial check in case run is already finished
+    getRun(runId)
+      .then((res) => {
+        if (res.status === "COMPLETED") {
+          setStages((prev) =>
+            prev.map((s) => ({
+              ...s,
+              status: "completed",
+            }))
+          );
+          setIsDone(true);
+          setRunData(res);
+          if (res.llm_calls) setLlmCallCount(res.llm_calls.length);
+        } else if (res.status === "FAILED") {
+          setIsFailed(true);
+          setError(res.error || "Run failed");
+        }
+      })
+      .catch(() => {});
 
     const eventSource = new EventSource(`${API_BASE}/api/runs/${runId}/events`);
 

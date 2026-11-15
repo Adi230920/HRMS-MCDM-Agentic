@@ -27,6 +27,8 @@ class Point(BaseModel):
     challenge: str = ""
     defense: str = ""
     verdict: Literal["challenger", "challenged", "unresolved"] = "unresolved"
+    verdict_rationale: str = ""
+    key_evidence: list[str] = []
 
 
 def detect_conflicts(
