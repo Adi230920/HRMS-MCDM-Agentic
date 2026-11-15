@@ -1,0 +1,9 @@
+{
+  "id": "A_inflator",
+  "label": "REJECT",
+  "expected": "DO_NOT_ADVANCE",
+  "candidate_name": "Priya Sharma",
+  "jd": "Senior AI Engineer: build and own RAG pipelines and vector search, deploy services on Kubernetes, mentor junior engineers.",
+  "resume": "Priya Sharma | priya@example.com | +91 98765 43210\nSenior AI Engineer, 6 years\n- Architected a RAG platform serving 2M queries/day, tuning HNSW vector indexes in FAISS\n- Led a team of 5 to migrate the search service to microservices on Kubernetes\n- Mentored 3 junior engineers\nSkills: Python, FastAPI, Kubernetes, PyTorch",
+  "transcript": "Interviewer: Walk me through how vector indexing works in your RAG platform.\nCandidate: Sure. We basically store the documents in the vector database and search them by keywords. I think the index just keeps the text so the search is faster.\nInterviewer: How did you choose between HNSW and IVF for the index?\nCandidate: I'm not sure, that was set up before I joined the project. We used the default settings.\nInterviewer: You led the search service migration to Kubernetes. What was your role?\nCandidate: Honestly my lead handled the backend and the cluster work. I mostly wrote the documentation and the runbooks for the migration.\nInterviewer: Tell me about a disagreement with a teammate.\nCandidate: I always listen first, then we agree on a plan. I've mentored three juniors and everyone enjoyed it, it was a great experience."
+}

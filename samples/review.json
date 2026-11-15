@@ -1,0 +1,9 @@
+{
+  "id": "C_split",
+  "label": "REVIEW",
+  "expected": "REVIEW",
+  "candidate_name": "",
+  "jd": "Senior AI Engineer: build and own RAG pipelines and vector search, deploy services on Kubernetes, mentor junior engineers.",
+  "resume": "Staff Engineer, 8 years\n- Designed a vector search service using HNSW indexes in FAISS\n- Led the Kubernetes migration of the search service\nSkills: Python, Kubernetes, FAISS",
+  "transcript": "Interviewer: How did you choose the index type?\nCandidate: I chose HNSW over IVF because recall at low latency mattered. I set M to 32 and efConstruction to 200 and validated with recall at k.\nInterviewer: What was your role in the Kubernetes migration?\nCandidate: I owned it end to end. I wrote the Helm charts and ran the cutover myself.\nInterviewer: How do you work with your team?\nCandidate: Honestly my teammates slow me down. Code reviews are mostly a waste of time and I skip them when I can. Junior engineers should figure things out themselves."
+}

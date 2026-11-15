@@ -1,0 +1,10 @@
+version: 1.0
+rating_points: {NOT_DEMONSTRATED: 0, PARTIAL: 0.5, STRONG: 1}
+agent_weights: {TECHNICAL: 0.40, DELIVERY: 0.35, COLLABORATION: 0.25}
+recommend: {advance_at: 0.60, reject_below: 0.30}
+veto: {floor: 0.35, signals_required: 2}
+penalties: {per_unresolved_point: 0.15, per_failed_agent: 0.20}
+conflicts: {max_points: 4, dissent_score_below: 0.45}
+advance_requires_unanimity: true
+limits: {max_input_chars: 30000, max_claims: 8, whisper_words: 30}
+tuned_on: 3 synthetic demo cases. Disclose this in the report.

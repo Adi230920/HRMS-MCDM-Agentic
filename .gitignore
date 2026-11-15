@@ -1,0 +1,37 @@
+# Environment files & secrets
+.env
+.env.*
+!.env.example
+*.env
+*.env.local
+
+# Database & SQLite files
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+
+# Dependencies & Build artifacts
+node_modules/
+frontend/node_modules/
+.next/
+frontend/.next/
+dist/
+build/
+*.egg-info/
+
+# Python caches & virtual environments
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+ENV/
+.pytest_cache/
+.ruff_cache/
+
+# OS and Editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

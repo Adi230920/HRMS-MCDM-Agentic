@@ -1,0 +1,9 @@
+{
+  "id": "B_humble",
+  "label": "HIRE",
+  "expected": "ADVANCE",
+  "candidate_name": "",
+  "jd": "Senior AI Engineer: build and own RAG pipelines and vector search, deploy services on Kubernetes, mentor junior engineers.",
+  "resume": "Software Engineer, 4 years\n- Maintained the search backend for an internal knowledge app\n- Fixed production incidents and improved index recall\nSkills: Python, FastAPI, Kubernetes",
+  "transcript": "Interviewer: Walk me through how vector indexing works in your search backend.\nCandidate: We used HNSW in FAISS, which builds a layered graph so a query hops from coarse to fine neighbours. When recall dropped I raised efSearch and rebuilt with a higher M, then measured recall against a brute-force baseline.\nInterviewer: Tell me about a hard production bug.\nCandidate: Two workers wrote to the index at once and corrupted it. I reproduced it with a stress script, found the missing lock, added a single-writer queue, and wrote a postmortem for the team.\nInterviewer: How do you work with teammates?\nCandidate: I pair with juniors on reviews and explain why I suggest changes, and I ask the team when I'm unsure."
+}

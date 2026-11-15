@@ -1,0 +1,93 @@
+[
+  {
+    "id": "A_inflator",
+    "label": "REJECT",
+    "expected": "DO_NOT_ADVANCE",
+    "candidate_name": "Priya Sharma",
+    "jd": "Senior AI Engineer: build and own RAG pipelines and vector search, deploy services on Kubernetes, mentor junior engineers.",
+    "resume": "Priya Sharma | priya@example.com | +91 98765 43210\nSenior AI Engineer, 6 years\n- Architected a RAG platform serving 2M queries/day, tuning HNSW vector indexes in FAISS\n- Led a team of 5 to migrate the search service to microservices on Kubernetes\n- Mentored 3 junior engineers\nSkills: Python, FastAPI, Kubernetes, PyTorch",
+    "transcript": "Interviewer: Walk me through how vector indexing works in your RAG platform.\nCandidate: Sure. We basically store the documents in the vector database and search them by keywords. I think the index just keeps the text so the search is faster.\nInterviewer: How did you choose between HNSW and IVF for the index?\nCandidate: I'm not sure, that was set up before I joined the project. We used the default settings.\nInterviewer: You led the search service migration to Kubernetes. What was your role?\nCandidate: Honestly my lead handled the backend and the cluster work. I mostly wrote the documentation and the runbooks for the migration.\nInterviewer: Tell me about a disagreement with a teammate.\nCandidate: I always listen first, then we agree on a plan. I've mentored three juniors and everyone enjoyed it, it was a great experience."
+  },
+  {
+    "id": "B_humble",
+    "label": "HIRE",
+    "expected": "ADVANCE",
+    "candidate_name": "",
+    "jd": "Senior AI Engineer: build and own RAG pipelines and vector search, deploy services on Kubernetes, mentor junior engineers.",
+    "resume": "Software Engineer, 4 years\n- Maintained the search backend for an internal knowledge app\n- Fixed production incidents and improved index recall\nSkills: Python, FastAPI, Kubernetes",
+    "transcript": "Interviewer: Walk me through how vector indexing works in your search backend.\nCandidate: We used HNSW in FAISS, which builds a layered graph so a query hops from coarse to fine neighbours. When recall dropped I raised efSearch and rebuilt with a higher M, then measured recall against a brute-force baseline.\nInterviewer: Tell me about a hard production bug.\nCandidate: Two workers wrote to the index at once and corrupted it. I reproduced it with a stress script, found the missing lock, added a single-writer queue, and wrote a postmortem for the team.\nInterviewer: How do you work with teammates?\nCandidate: I pair with juniors on reviews and explain why I suggest changes, and I ask the team when I'm unsure."
+  },
+  {
+    "id": "C_split",
+    "label": "REVIEW",
+    "expected": "REVIEW",
+    "candidate_name": "",
+    "jd": "Senior AI Engineer: build and own RAG pipelines and vector search, deploy services on Kubernetes, mentor junior engineers.",
+    "resume": "Staff Engineer, 8 years\n- Designed a vector search service using HNSW indexes in FAISS\n- Led the Kubernetes migration of the search service\nSkills: Python, Kubernetes, FAISS",
+    "transcript": "Interviewer: How did you choose the index type?\nCandidate: I chose HNSW over IVF because recall at low latency mattered. I set M to 32 and efConstruction to 200 and validated with recall at k.\nInterviewer: What was your role in the Kubernetes migration?\nCandidate: I owned it end to end. I wrote the Helm charts and ran the cutover myself.\nInterviewer: How do you work with your team?\nCandidate: Honestly my teammates slow me down. Code reviews are mostly a waste of time and I skip them when I can. Junior engineers should figure things out themselves."
+  },
+  {
+    "id": "D_subtle_perf_lie",
+    "label": "REJECT",
+    "expected": "DO_NOT_ADVANCE",
+    "candidate_name": "Arjun Patel",
+    "jd": "Senior AI Engineer: build and own RAG pipelines and vector search, deploy services on Kubernetes, mentor junior engineers.",
+    "resume": "Arjun Patel | arjun@example.com\nSenior AI Systems Engineer, 5 years\n- Spearheaded custom GPU kernel optimizations in Triton, reducing retrieval inference latency by 10x\n- Mentored junior engineers on profiling memory bandwidth\nSkills: Python, Triton, PyTorch, C++",
+    "transcript": "Interviewer: How did you write and benchmark the custom Triton kernel for retrieval inference?\nCandidate: Actually, we didn't write Triton from scratch; we just bumped the batch_size in the vLLM config file from 8 to 64 and latency dropped. I used the word Triton because vLLM has Triton under the hood.\nInterviewer: Did you write or tune any GPU kernels yourself?\nCandidate: No, I didn't write kernel code myself, our platform vendor provided the container image.\nInterviewer: How did you mentor the junior engineers?\nCandidate: I shared the vLLM documentation link in our team Slack channel."
+  },
+  {
+    "id": "E_subtle_scale_lie",
+    "label": "REJECT",
+    "expected": "DO_NOT_ADVANCE",
+    "candidate_name": "Elena Rostova",
+    "jd": "Senior AI Engineer: build and own RAG pipelines and vector search, deploy services on Kubernetes, mentor junior engineers.",
+    "resume": "Elena Rostova | elena@example.com\nLead Infrastructure Engineer, 7 years\n- Architected real-time streaming pipeline supporting 100M daily active users\n- Owned multi-cluster Kubernetes deployment across three cloud regions\nSkills: Kafka, Kubernetes, Go, Python",
+    "transcript": "Interviewer: Can you describe the partition layout and replication strategy for the 100M DAU pipeline?\nCandidate: To be completely transparent, the 100M figure was the projected target for the company roadmap. In production we had about 100 internal test users.\nInterviewer: Who designed the cluster architecture across the three cloud regions?\nCandidate: The cloud consultant firm we hired drew up the multi-region topology. I mostly tracked their Jira tickets.\nInterviewer: Tell me about leading delivery.\nCandidate: It was mostly attending the weekly sync calls with the consulting agency."
+  },
+  {
+    "id": "F_all_strong",
+    "label": "HIRE",
+    "expected": "ADVANCE",
+    "candidate_name": "Kavita Rao",
+    "jd": "Senior AI Engineer: build and own RAG pipelines and vector search, deploy services on Kubernetes, mentor junior engineers.",
+    "resume": "Kavita Rao | kavita@example.com\nSenior Backend & ML Engineer, 6 years\n- Built hybrid lexical/dense search engine with Vespa and FAISS, serving 5M requests/day at p99 < 35ms\n- Designed and executed zero-downtime canary deployment on EKS Kubernetes\n- Established weekly architecture review and mentored 4 junior engineers into mid-level roles\nSkills: Python, Go, Kubernetes, FAISS, Vespa",
+    "transcript": "Interviewer: Tell us about designing the hybrid search pipeline with Vespa and FAISS.\nCandidate: We combined BM25 lexical signals with dense embeddings from an all-MiniLM model fine-tuned on our clickstream data. We used reciprocal rank fusion at rank 60 to merge lists. Under heavy load, p99 crept over 50ms, so I implemented query-dependent embedding caching with Redis and quantization (PQ8), which cut latency back to 32ms.\nInterviewer: How did you handle the Kubernetes cutover on EKS?\nCandidate: I set up Argo Rollouts with automated metric analysis monitoring error rate and latency percentiles. When error rate exceeded 0.1%, it aborted automatically. We tested rollouts with Chaos Mesh injects first.\nInterviewer: How do you mentor your team?\nCandidate: I set bi-weekly growth pairing sessions with each junior engineer. Two of them led their first cross-functional RFCs last quarter, and all four stepped into independent feature ownership."
+  },
+  {
+    "id": "G_ambiguous_seniority",
+    "label": "REVIEW",
+    "expected": "REVIEW",
+    "candidate_name": "Marcus Chen",
+    "jd": "Senior AI Engineer: build and own RAG pipelines and vector search, deploy services on Kubernetes, mentor junior engineers.",
+    "resume": "Marcus Chen | marcus@example.com\nSoftware Engineer II, 3.5 years\n- Implemented FastAPI microservices for vector search integration\n- Containerized backend workloads with Docker and Kubernetes manifests\nSkills: Python, FastAPI, Docker, Kubernetes",
+    "transcript": "Interviewer: Tell us how you built the vector search microservices.\nCandidate: I implemented the endpoints using FastAPI and hooked them into Qdrant using the official Python client. The senior architect specified the data models and indexing parameters, and I wrote the unit tests and service logic cleanly.\nInterviewer: Have you owned system architecture or resolved multi-cluster production outages?\nCandidate: Not at an architectural leadership level. When outages happened, I assisted the on-call senior lead with log inspection and debugging specific service endpoints.\nInterviewer: How do you work with others?\nCandidate: I communicate very well, submit clean pull requests, and am eager to step up, but I have not formally mentored junior team members yet."
+  },
+  {
+    "id": "H_subtle_authorship_lie",
+    "label": "REJECT",
+    "expected": "DO_NOT_ADVANCE",
+    "candidate_name": "Devin Miller",
+    "jd": "Senior AI Engineer: build and own RAG pipelines and vector search, deploy services on Kubernetes, mentor junior engineers.",
+    "resume": "Devin Miller | devin@example.com\nSystems Programmer, 5 years\n- Primary author and core maintainer of open source distributed consensus engine in Rust and Python\n- Built Raft log replication engine for distributed embeddings\nSkills: Rust, Python, Raft, Distributed Systems",
+    "transcript": "Interviewer: Walk us through how you handled joint consensus membership changes in the Raft engine.\nCandidate: Actually, the original authors wrote the Raft state machine and consensus module. I contributed fixes to the documentation and updated the GitHub Actions CI workflow.\nInterviewer: Did you author or maintain the core consensus code?\nCandidate: No, I didn't write the consensus logic. I submitted 3 PRs fixing typos and formatting in the README and docs.\nInterviewer: How about the distributed embeddings replication?\nCandidate: That was a design idea discussed in an issue, not something I coded."
+  },
+  {
+    "id": "I_subtle_incident_lie",
+    "label": "REJECT",
+    "expected": "DO_NOT_ADVANCE",
+    "candidate_name": "Tara Woods",
+    "jd": "Senior AI Engineer: build and own RAG pipelines and vector search, deploy services on Kubernetes, mentor junior engineers.",
+    "resume": "Tara Woods | tara@example.com\nSite Reliability & AI Engineer, 4 years\n- Led incident recovery during catastrophic primary database corruption, restoring 99.99% availability\n- Managed disaster recovery runbooks and automated failover in Kubernetes\nSkills: Kubernetes, PostgreSQL, Python, SRE",
+    "transcript": "Interviewer: Walk us through the database corruption incident and how you recovered the system.\nCandidate: Well, I was actually on scheduled vacation when the actual outage occurred. The principal DBA executed the point-in-time recovery and failover.\nInterviewer: What was your specific leadership in that incident?\nCandidate: When I returned the following week, I read the incident channel and filed a ticket to update our documentation with their findings.\nInterviewer: Did you execute failovers in Kubernetes?\nCandidate: No, that is strictly managed by our infrastructure operations team."
+  },
+  {
+    "id": "J_unresolved_council_split",
+    "label": "REVIEW",
+    "expected": "REVIEW",
+    "candidate_name": "Siddharth Verma",
+    "jd": "Senior AI Engineer: build and own RAG pipelines and vector search, deploy services on Kubernetes, mentor junior engineers.",
+    "resume": "Siddharth Verma | sid@example.com\nSenior AI Platform Specialist, 6 years\n- Spearheaded enterprise search migration to Kubernetes, managing all cluster security and Helm deployments\n- Mentored junior engineers across two teams\nSkills: Kubernetes, Helm, Security, Python",
+    "transcript": "Interviewer: Did you handle the Kubernetes migration alone or with the security team?\nCandidate: I owned the Helm charts and cluster configuration, but the corporate security team rejected our first cutover because of root container permissions, so we had an intense debate about privilege escalation.\nInterviewer: Did you resolve the security conflicts?\nCandidate: We agreed to disagree on the RBAC policy; we deployed with temporary exceptions that still haven't been resolved.\nInterviewer: How do you mentor junior developers?\nCandidate: I hold reviews, though some engineers felt my feedback on their PRs was overly harsh and unyielding."
+  }
+]
+
