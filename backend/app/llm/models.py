@@ -95,20 +95,34 @@ def parse_route(route_str: str) -> list[RouteLink]:
     return links
 
 
-def get_route_for_role(role: str) -> list[RouteLink]:
-    """Get the ordered route chain for a role, honoring ROUTE_* overrides."""
-    role_key = role.strip().lower()
-    env_var = f"ROUTE_{role_key.upper()}"
+ROLE_ALIASES: dict[str, str] = {
+    "delivery": "manager",
+    "collaboration": "hr",
+}
 
-    route_override = os.environ.get(env_var)
+
+def get_route_for_role(role: str) -> list[RouteLink]:
+    """Get the ordered route chain for a role, honoring ROUTE_* overrides and aliases."""
+    role_key = role.strip().lower()
+    role_canonical = ROLE_ALIASES.get(role_key, role_key)
+
+    env_var = f"ROUTE_{role_key.upper()}"
+    env_var_canonical = f"ROUTE_{role_canonical.upper()}"
+
+    route_override = os.environ.get(env_var) or os.environ.get(env_var_canonical)
     if not route_override and hasattr(settings, env_var):
         val = getattr(settings, env_var)
         if val:
             route_override = val
+    if not route_override and hasattr(settings, env_var_canonical):
+        val = getattr(settings, env_var_canonical)
+        if val:
+            route_override = val
 
-    raw_route = route_override or DEFAULT_ROUTES.get(role_key)
+    raw_route = route_override or DEFAULT_ROUTES.get(role_canonical) or DEFAULT_ROUTES.get(role_key)
     if not raw_route:
-        raise ValueError(f"Unknown role '{role}'. Expected one of {list(DEFAULT_ROUTES.keys())}")
+        expected = list(DEFAULT_ROUTES.keys()) + list(ROLE_ALIASES.keys())
+        raise ValueError(f"Unknown role '{role}'. Expected one of {expected}")
 
     return parse_route(raw_route)
 

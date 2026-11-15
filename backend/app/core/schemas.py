@@ -1,6 +1,6 @@
 """Core domain models and evaluation schemas."""
 
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import BaseModel, field_validator
 
@@ -45,6 +45,20 @@ class CriterionRating(BaseModel):
     rating: Rating
     evidence: list[Evidence] = []
 
+    @field_validator("rating", mode="before")
+    @classmethod
+    def _norm_rating(cls, v: Any) -> Any:
+        if isinstance(v, str):
+            s = v.strip().upper().replace(" ", "_").replace("-", "_")
+            if s in ("NONE", "NO", "NOT", "FAIL", "POOR", "WEAK"):
+                return "NOT_DEMONSTRATED"
+            if s in ("GOOD", "HIGH", "EXCELLENT"):
+                return "STRONG"
+            if s in ("MEDIUM", "MODERATE", "SOME"):
+                return "PARTIAL"
+            return s
+        return v
+
 
 class ClaimFinding(BaseModel):
     claim_id: str
@@ -61,6 +75,18 @@ class AgentEval(BaseModel):
     reasoning: str = ""
     violations: list[str] = []
 
+    @field_validator("recommendation", mode="before")
+    @classmethod
+    def _norm_rec(cls, v: Any) -> Any:
+        if isinstance(v, str):
+            s = v.strip().upper().replace(" ", "_").replace("-", "_")
+            if s in ("REJECT", "DO_NOT_HIRE", "NO", "FAIL"):
+                return "DO_NOT_ADVANCE"
+            if s in ("HIRE", "PASS", "ACCEPT"):
+                return "ADVANCE"
+            return s
+        return v
+
     @field_validator("whisper")
     @classmethod
     def _cap(cls, v: str) -> str:
@@ -73,6 +99,20 @@ class Ruling(BaseModel):
     defense: str
     verdict: Literal["challenger", "challenged", "unresolved"]
     revised_recommendation: Rec | None = None
+
+    @field_validator("revised_recommendation", mode="before")
+    @classmethod
+    def _norm_revised(cls, v: Any) -> Any:
+        if isinstance(v, str):
+            s = v.strip().upper().replace(" ", "_").replace("-", "_")
+            if s in ("REJECT", "DO_NOT_HIRE", "NO", "FAIL"):
+                return "DO_NOT_ADVANCE"
+            if s in ("HIRE", "PASS", "ACCEPT"):
+                return "ADVANCE"
+            if s in ("NONE", "NULL", ""):
+                return None
+            return s
+        return v
 
 
 class Rulings(BaseModel):
