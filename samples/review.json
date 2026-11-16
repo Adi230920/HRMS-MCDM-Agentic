@@ -1,6 +1,6 @@
 {
   "id": "C_split",
-  "label": "REVIEW",
+  "label": "Candidate: Staff Search Architect",
   "expected": "REVIEW",
   "candidate_name": "",
   "jd": "Senior AI Engineer: build and own RAG pipelines and vector search, deploy services on Kubernetes, mentor junior engineers.",

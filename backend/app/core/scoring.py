@@ -27,7 +27,7 @@ def score(ev: AgentEval, policy: Policy | None = None) -> float:
 
 def rate(ev: AgentEval, crit: str) -> str:
     """Extract rating for a specific criterion."""
-    return next(r.rating for r in ev.ratings if r.criterion == crit)
+    return next((r.rating for r in ev.ratings if r.criterion == crit), "")
 
 
 def recommend_from_score(score_val: float, policy: Policy | None = None) -> str:

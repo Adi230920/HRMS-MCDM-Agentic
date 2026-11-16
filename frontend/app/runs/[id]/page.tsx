@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   useRunEvents,
@@ -12,6 +12,7 @@ import {
   CriterionRating,
   Evidence,
   ClaimFinding,
+  submitReview,
 } from "@/lib/api";
 import {
   CheckCircle2,
@@ -58,6 +59,14 @@ export default function RunTimelinePage({ params }: PageProps) {
   const [activeTab, setActiveTab] = useState<TabType>("executive");
   const [selectedAgent, setSelectedAgent] = useState<string>("TECHNICAL");
   const [copiedQuestionIndex, setCopiedQuestionIndex] = useState<number | null>(null);
+
+  // Human Recruiter Sign-Off State (Policy Rule #8)
+  const [reviewDecision, setReviewDecision] = useState<"ADVANCE" | "REVIEW" | "DO_NOT_ADVANCE">("ADVANCE");
+  const [reviewerName, setReviewerName] = useState<string>("");
+  const [reviewNotes, setReviewNotes] = useState<string>("");
+  const [submittingReview, setSubmittingReview] = useState<boolean>(false);
+  const [reviewSuccess, setReviewSuccess] = useState<string | null>(null);
+  const [reviewList, setReviewList] = useState<Array<{ id: number; decision: string; reviewer: string; notes: string; created_at: string }>>([]);
 
   const {
     stages,
@@ -165,7 +174,7 @@ export default function RunTimelinePage({ params }: PageProps) {
     const hasStrong = ev.ratings.some((r) => r.rating === "STRONG");
     const contradictedClaim = ev.claim_findings.some((c) => c.status === "CONTRADICTED");
 
-    if (ev.recommendation === "DO_NOT_ADVANCE" || contradictedClaim) {
+    if (ev.recommendation === "DO_NOT_ADVANCE" || contradictedClaim || hasNotDem) {
       return {
         status: "Red Flag",
         color: "bg-rose-50 text-rose-800 border-rose-300",
@@ -174,7 +183,7 @@ export default function RunTimelinePage({ params }: PageProps) {
           : ev.whisper || "Unfavorable demonstration during interview.",
       };
     }
-    if (ev.recommendation === "ADVANCE" && hasStrong) {
+    if (ev.recommendation === "ADVANCE" && hasStrong && !hasNotDem) {
       return {
         status: "Strong Match",
         color: "bg-emerald-50 text-emerald-800 border-emerald-300",
@@ -220,6 +229,39 @@ export default function RunTimelinePage({ params }: PageProps) {
     navigator.clipboard.writeText(text);
     setCopiedQuestionIndex(index);
     setTimeout(() => setCopiedQuestionIndex(null), 2000);
+  };
+
+  useEffect(() => {
+    if (runData?.reviews) {
+      setReviewList(runData.reviews);
+    }
+    if (runData?.decision) {
+      const dec = runData.decision;
+      if (dec === "ADVANCE" || dec === "REVIEW" || dec === "DO_NOT_ADVANCE") {
+        setReviewDecision(dec);
+      }
+    }
+  }, [runData]);
+
+  const handleReviewSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (submittingReview) return;
+    setSubmittingReview(true);
+    setReviewSuccess(null);
+    try {
+      const res = await submitReview(runId, {
+        decision: reviewDecision,
+        reviewer: reviewerName.trim() || "Lead Recruiter",
+        notes: reviewNotes.trim() || "Decision confirmed following council deliberation audit.",
+      });
+      setReviewList((prev) => [res, ...prev]);
+      setReviewSuccess("Human decision recorded to audit log successfully.");
+      setReviewNotes("");
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : "Failed to record human review.");
+    } finally {
+      setSubmittingReview(false);
+    }
   };
 
   return (
@@ -1279,6 +1321,167 @@ export default function RunTimelinePage({ params }: PageProps) {
               )}
             </div>
           )}
+
+          {/* ============================================================== */}
+          {/* HUMAN-IN-THE-LOOP RECRUITER DECISION CARD (RULE #8)            */}
+          {/* ============================================================== */}
+          <div className="bg-gradient-to-br from-slate-50 to-indigo-50/40 border border-slate-300 rounded-xl p-6 shadow-xs space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 pb-3">
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="w-5 h-5 text-indigo-700" />
+                <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
+                  Human Recruiter Final Sign-Off & Audit Certification
+                </h3>
+              </div>
+              <span className="text-[11px] font-semibold text-slate-600 bg-white border border-slate-200 px-2 py-0.5 rounded">
+                Policy Rule #8: Mandatory Human Confirmation
+              </span>
+            </div>
+
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Council recommendations provide explainable decision support. An authorized human hiring authority must review the evidence quotes, debate points, and mathematical confidence before confirming the final candidate outcome.
+            </p>
+
+            {reviewSuccess && (
+              <div className="bg-emerald-50 border border-emerald-200 p-3 rounded-lg flex items-center gap-2 text-xs text-emerald-800 font-medium">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span>{reviewSuccess}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleReviewSubmit} className="space-y-4 pt-1">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Decision Selection */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-slate-700 block">
+                    Confirmed Human Decision:
+                  </label>
+                  <div className="grid grid-cols-3 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setReviewDecision("ADVANCE")}
+                      className={`px-3 py-2 rounded-md text-xs font-bold border transition ${
+                        reviewDecision === "ADVANCE"
+                          ? "bg-emerald-600 text-white border-emerald-600 shadow-2xs"
+                          : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
+                      }`}
+                    >
+                      Advance
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setReviewDecision("REVIEW")}
+                      className={`px-3 py-2 rounded-md text-xs font-bold border transition ${
+                        reviewDecision === "REVIEW"
+                          ? "bg-amber-600 text-white border-amber-600 shadow-2xs"
+                          : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
+                      }`}
+                    >
+                      Hold Review
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setReviewDecision("DO_NOT_ADVANCE")}
+                      className={`px-3 py-2 rounded-md text-xs font-bold border transition ${
+                        reviewDecision === "DO_NOT_ADVANCE"
+                          ? "bg-rose-600 text-white border-rose-600 shadow-2xs"
+                          : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
+                      }`}
+                    >
+                      Do Not Advance
+                    </button>
+                  </div>
+                </div>
+
+                {/* Reviewer Name */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-slate-700 block">
+                    Authorized Reviewer Name / Title:
+                  </label>
+                  <input
+                    type="text"
+                    value={reviewerName}
+                    onChange={(e) => setReviewerName(e.target.value)}
+                    placeholder="e.g. Sarah Jenkins (Talent Acquisition Lead)"
+                    className="w-full text-xs border border-slate-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                  />
+                </div>
+              </div>
+
+              {/* Review Notes */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-slate-700 block">
+                  Human Rationale & Deliberation Notes:
+                </label>
+                <textarea
+                  rows={2}
+                  value={reviewNotes}
+                  onChange={(e) => setReviewNotes(e.target.value)}
+                  placeholder="Record justification, mitigation notes, or instructions for hiring committee..."
+                  className="w-full text-xs border border-slate-300 rounded-md p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white font-sans"
+                />
+              </div>
+
+              <div className="flex items-center justify-between pt-1">
+                <span className="text-[11px] text-slate-500">
+                  Submissions are permanently logged to the immutable SQLite audit table.
+                </span>
+                <button
+                  type="submit"
+                  disabled={submittingReview}
+                  className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-md shadow-xs transition flex items-center gap-1.5 disabled:opacity-50"
+                >
+                  {submittingReview ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" /> Recording...
+                    </>
+                  ) : (
+                    <>
+                      <Check className="w-3.5 h-3.5" /> Log Human Decision
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+
+            {/* Previously Logged Reviews */}
+            {reviewList.length > 0 && (
+              <div className="mt-4 pt-4 border-t border-slate-200 space-y-2">
+                <h4 className="text-[11px] uppercase font-bold text-slate-500 tracking-wider">
+                  Logged Compliance Reviews ({reviewList.length})
+                </h4>
+                <div className="space-y-2">
+                  {reviewList.map((rev) => (
+                    <div
+                      key={rev.id}
+                      className="bg-white border rounded-lg p-3 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-2xs"
+                    >
+                      <div className="space-y-0.5">
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-slate-800">{rev.reviewer || "Authorized Reviewer"}</span>
+                          <span
+                            className={`px-2 py-0.2 rounded font-mono font-bold text-[10px] border ${
+                              rev.decision === "ADVANCE"
+                                ? "bg-emerald-50 text-emerald-800 border-emerald-300"
+                                : rev.decision === "DO_NOT_ADVANCE"
+                                ? "bg-rose-50 text-rose-800 border-rose-300"
+                                : "bg-amber-50 text-amber-800 border-amber-300"
+                            }`}
+                          >
+                            {rev.decision}
+                          </span>
+                        </div>
+                        <p className="text-slate-600">{rev.notes}</p>
+                      </div>
+                      <span className="text-[10px] text-slate-400 font-mono shrink-0">
+                        {new Date(rev.created_at).toLocaleString()}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
 
           {/* Action Footer */}
           <div className="pt-4 border-t flex items-center justify-between">

@@ -1,6 +1,6 @@
 {
   "id": "B_humble",
-  "label": "HIRE",
+  "label": "Candidate: Senior AI & Search Engineer",
   "expected": "ADVANCE",
   "candidate_name": "",
   "jd": "Senior AI Engineer: build and own RAG pipelines and vector search, deploy services on Kubernetes, mentor junior engineers.",

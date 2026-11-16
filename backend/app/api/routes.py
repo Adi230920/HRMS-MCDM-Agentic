@@ -47,6 +47,7 @@ class CreateRunRequest(BaseModel):
     resume: str = Field(..., description="Candidate resume text")
     transcript: str = Field(..., description="Interview transcript text")
     candidate_name: str = Field("", description="Optional candidate name for redaction only")
+    mock: bool = Field(False, description="Optional toggle for mock replay mode")
 
 
 class ReviewRequest(BaseModel):
@@ -73,14 +74,16 @@ def compute_cache_hash(
     transcript_redacted: str,
     policy_version: float,
     route_config: str,
+    mock: bool = False,
 ) -> str:
-    """Generate deterministic SHA-256 hash across inputs, policy version, and routes."""
+    """Generate deterministic SHA-256 hash across inputs, policy version, routes, and execution mode."""
     data = (
         f"jd:{jd.strip()}\n"
         f"resume:{resume_redacted.strip()}\n"
         f"transcript:{transcript_redacted.strip()}\n"
         f"policy:{policy_version}\n"
-        f"routes:{route_config}"
+        f"routes:{route_config}\n"
+        f"mock:{mock}"
     )
     return hashlib.sha256(data.encode("utf-8")).hexdigest()
 
@@ -105,12 +108,31 @@ def _execute_pipeline_task(
     # Determine LLM client
     llm_client = None
     if mock_mode or settings.MOCK_LLM:
-        # Match fixture by keywords
-        key = "review"
-        if "priya" in candidate_name.lower() or "default settings" in transcript.lower():
+        # Match fixture by keywords across all known samples and unseen cases
+        c_name = candidate_name.lower()
+        t_text = transcript.lower()
+        r_text = resume.lower()
+        j_text = jd.lower()
+
+        if "vikram" in c_name or "vector clocks" in t_text or "case4" in run_id.lower() or "dynamodb global tables" in t_text:
+            key = "case4_cloud"
+        elif "aarav" in c_name or "zero trust microsegmentation" in r_text or "case5" in run_id.lower() or "didn't write the ebpf" in t_text:
+            key = "case5_security"
+        elif "meera" in c_name or "iceberg lakehouse" in r_text or "case6" in run_id.lower() or "z-order clustering" in t_text:
+            key = "case6_data"
+        elif "rohan" in c_name or "reconciliation" in r_text or "keyset pagination" in t_text or "payments" in j_text:
+            key = "case1_payments"
+        elif "karan" in c_name or "multi-region aws" in r_text or "tf files themselves" in t_text or "devops" in j_text:
+            key = "case2_devops"
+        elif "ananya" in c_name or "power bi" in r_text or "window function with lag" in t_text or "operations data" in j_text:
+            key = "case3_analyst"
+        elif "priya" in c_name or "default settings" in t_text:
             key = "reject"
-        elif "brute-force baseline" in transcript.lower() or "humble" in resume.lower():
+        elif "brute-force baseline" in t_text or "humble" in r_text:
             key = "hire"
+        else:
+            key = "review"
+
         llm_client = MockReplayLLMClient(key)
 
     try:
@@ -232,12 +254,14 @@ def create_run(
 
     # 3. Cache lookup
     route_config = _get_route_config_str()
+    is_mock = mock or req.mock or settings.MOCK_LLM
     input_hash = compute_cache_hash(
         jd=req.jd,
         resume_redacted=redacted_resume,
         transcript_redacted=redacted_transcript,
         policy_version=pol.version,
         route_config=route_config,
+        mock=is_mock,
     )
 
     cached_run = (
@@ -277,7 +301,7 @@ def create_run(
         resume=req.resume,
         transcript=req.transcript,
         candidate_name=req.candidate_name,
-        mock_mode=mock,
+        mock_mode=is_mock,
     )
 
     return {"run_id": run_id, "status": "PROCESSING", "cached": False}
@@ -494,8 +518,7 @@ def list_samples() -> list[dict[str, Any]]:
                     samples.append(
                         {
                             "id": data.get("id", f.stem),
-                            "label": data.get("label", f.stem.upper()),
-                            "expected": data.get("expected", ""),
+                            "label": data.get("label", f.stem.replace("_", " ").title()),
                             "filename": f.name,
                             "jd": data.get("jd", ""),
                             "resume": data.get("resume", ""),

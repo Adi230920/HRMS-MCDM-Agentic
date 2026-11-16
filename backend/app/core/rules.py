@@ -97,6 +97,17 @@ def detect_conflicts(
             "Technical found no demonstrated core depth while a peer recommends ADVANCE",
         )
 
+    # 2b. teamwork_not_demonstrated
+    adv_c = [a for a, ev in evals.items() if ev.recommendation == "ADVANCE" and a != "COLLABORATION"]
+    if c_eval and adv_c and rate(c_eval, "teamwork_evidence") == "NOT_DEMONSTRATED":
+        add(
+            "teamwork_not_demonstrated",
+            "high",
+            "COLLABORATION",
+            adv_c[0],
+            "Collaboration found no demonstrated teamwork or mentorship while a peer recommends ADVANCE",
+        )
+
     # 3. charisma_gap
     if (
         t_eval

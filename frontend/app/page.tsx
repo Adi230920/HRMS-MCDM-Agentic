@@ -17,6 +17,7 @@ import {
   XCircle,
   Loader2,
   Sparkles,
+  Cpu,
 } from "lucide-react";
 
 interface FormErrors {
@@ -38,6 +39,7 @@ export default function NewEvaluationPage() {
   const [resume, setResume] = useState<string>("");
   const [transcript, setTranscript] = useState<string>("");
   const [candidateName, setCandidateName] = useState<string>("");
+  const [executionMode, setExecutionMode] = useState<"fast" | "live">("fast");
 
   const [isRunning, setIsRunning] = useState<boolean>(false);
   const [errors, setErrors] = useState<FormErrors>({});
@@ -126,14 +128,16 @@ export default function NewEvaluationPage() {
     setErrors({});
 
     try {
+      const isMock = executionMode === "fast";
       const response = await createRun(
         {
           jd: jd.trim(),
           resume: resume.trim(),
           transcript: transcript.trim(),
           candidate_name: candidateName.trim(),
+          mock: isMock,
         },
-        false
+        isMock
       );
 
       if (response && response.run_id) {
@@ -180,11 +184,50 @@ export default function NewEvaluationPage() {
             <option value="">-- Choose Sample Candidate --</option>
             {samples.map((s) => (
               <option key={s.id} value={s.id}>
-                {s.label} ({s.id}) - Expected: {s.expected}
+                {s.label}
               </option>
             ))}
           </select>
           {loadingSamples && <Loader2 className="w-4 h-4 animate-spin text-slate-400" />}
+        </div>
+      </div>
+
+      {/* Execution Architecture Mode Toggle */}
+      <div className="bg-white p-4 rounded-lg border border-slate-200 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
+            Execution Architecture Mode
+          </span>
+          <p className="text-xs text-slate-600 mt-0.5">
+            Switch between instantaneous deterministic replay or live multi-provider LLM council deliberation.
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2 bg-slate-100 p-1 rounded-lg border border-slate-300">
+          <button
+            type="button"
+            onClick={() => setExecutionMode("fast")}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold transition ${
+              executionMode === "fast"
+                ? "bg-white text-indigo-700 shadow-xs"
+                : "text-slate-600 hover:text-slate-900"
+            }`}
+          >
+            <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
+            ⚡ Fast Verification Mode (Replay)
+          </button>
+          <button
+            type="button"
+            onClick={() => setExecutionMode("live")}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold transition ${
+              executionMode === "live"
+                ? "bg-white text-indigo-700 shadow-xs"
+                : "text-slate-600 hover:text-slate-900"
+            }`}
+          >
+            <Cpu className="w-3.5 h-3.5 text-slate-600" />
+            🌐 Live Multi-LLM Council
+          </button>
         </div>
       </div>
 

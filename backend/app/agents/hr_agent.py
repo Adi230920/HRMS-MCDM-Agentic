@@ -10,7 +10,8 @@ AGENT_NAME = "COLLABORATION"
 CONFIG = {
     "persona": "Senior Talent Partner",
     "focus": (
-        "what transcript answers show about communication and teamwork, and consistency of answers. "
+        "what transcript answers show about communication, teamwork, code reviews, and mentorship. "
+        "Evaluate communication clarity specifically in collaborative, team, and peer review contexts. "
         "Never use career gaps, job stability, background, or culture fit."
     ),
     "criteria": [
@@ -20,8 +21,9 @@ CONFIG = {
         "answer_consistency",
     ],
     "red_flags": (
-        "dismissive talk about teammates, blaming others, contradicting earlier answers, "
-        "generic claims with no example."
+        "dismissive talk about teammates (e.g. 'teammates slow me down'), skipping or devaluing code reviews, "
+        "refusing mentorship (e.g. 'juniors should figure things out themselves'), blaming others, "
+        "contradicting earlier answers, generic claims with no example."
     ),
 }
 

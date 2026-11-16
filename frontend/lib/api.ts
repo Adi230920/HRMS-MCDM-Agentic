@@ -125,7 +125,7 @@ export interface AgentEval {
 export interface Sample {
   id: string;
   label: string;
-  expected: string;
+  expected?: string;
   filename: string;
   jd: string;
   resume?: string;
@@ -139,6 +139,7 @@ export interface CreateRunRequest {
   resume: string;
   transcript: string;
   candidate_name?: string;
+  mock?: boolean;
 }
 
 export interface CreateRunResponse {
@@ -241,6 +242,32 @@ export async function getRun(runId: string): Promise<RunDetail> {
   if (!res.ok) {
     throw new Error(`Failed to load run: ${res.statusText}`);
   }
+  return res.json();
+}
+
+export interface ReviewSubmission {
+  decision: "ADVANCE" | "REVIEW" | "DO_NOT_ADVANCE";
+  reviewer: string;
+  notes: string;
+}
+
+export async function submitReview(
+  runId: string,
+  payload: ReviewSubmission
+): Promise<{ id: number; run_id: string; decision: string; reviewer: string; notes: string; created_at: string }> {
+  const res = await fetch(`${API_BASE}/api/runs/${runId}/review`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) {
+    const errorBody = await res.json().catch(() => ({}));
+    throw new Error(errorBody.detail || `Failed to submit review (${res.status})`);
+  }
+
   return res.json();
 }
 
